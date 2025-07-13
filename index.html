@@ -1,126 +1,226 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>چت مخفی</title>
+  <meta charset="UTF-8" />
+  <title>#</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #1e1e1e;
-      color: #fff;
-      margin: 0;
+      font-family: "Vazir", sans-serif;
+      background: linear-gradient(145deg, #f6f8ff, #eaeefc);
       padding: 20px;
+      margin: 0;
+      direction: rtl;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
-    h1 {
-      text-align: center;
-    }
-    #message-form, #admin-panel {
-      max-width: 400px;
-      margin: 20px auto;
-      background: #333;
-      padding: 15px;
-      border-radius: 10px;
-    }
-    input, textarea, button {
+
+    .container {
+      background: #ffffff;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 600px;
       width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
     }
-    button {
-      background: #4CAF50;
-      color: #fff;
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      font-size: 16px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      resize: vertical;
+      background: #f9f9f9;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    button.action {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      background: linear-gradient(135deg, #7b8df1, #5563d6);
+      color: white;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
     }
-    button:hover {
-      background: #45a049;
+
+    .result-wrapper {
+      position: relative;
+      margin-top: 15px;
     }
-    #messages {
-      background: #222;
-      margin-top: 20px;
-      padding: 10px;
+
+    .result {
+      background: #f4f6ff;
+      padding: 15px;
       border-radius: 10px;
+      min-height: 60px;
+      font-size: 18px;
+      word-break: break-word;
+      white-space: pre-wrap;
     }
-    .msg {
-      background: #444;
-      padding: 8px;
-      margin-bottom: 5px;
-      border-radius: 5px;
+
+    .copy-btn {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      background: #ddd;
+      border: none;
+      padding: 6px 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .small-btn {
+      position: absolute;
+      top: 8px;
+      padding: 6px 8px;
+      font-size: 14px;
+      background: #ddd;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+      z-index: 2;
+    }
+
+    .small-btn.paste {
+      left: 50px;
+    }
+
+    .small-btn.clear {
+      left: 10px;
+    }
+
+    .small-btn:hover,
+    .copy-btn:hover {
+      background: #ccc;
+    }
+
+    @media (max-width: 500px) {
+      textarea {
+        height: 100px;
+        font-size: 14px;
+      }
+
+      .result {
+        font-size: 16px;
+      }
+
+      button.action {
+        font-size: 14px;
+        padding: 8px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>📨 ارسال پیام</h1>
-  <div id="message-form">
-    <input type="text" id="name" placeholder="نام شما">
-    <textarea id="message" placeholder="پیام شما"></textarea>
-    <button onclick="sendMessage()">ارسال پیام</button>
-  </div>
+  <div class="container">
+    <h2>#</h2>
 
-  <div id="admin-panel">
-    <h2>📖 پیام‌ها (ادمین)</h2>
-    <button onclick="loadMessages()">بروزرسانی پیام‌ها</button>
-    <div id="messages"></div>
+    <div class="input-wrapper">
+      <textarea id="textInput" placeholder="متن خود را اینجا وارد کنید..."></textarea>
+      <button class="copy-btn small-btn paste" onclick="pasteText()">📋</button>
+      <button class="copy-btn small-btn clear" onclick="clearText()">🗑️</button>
+    </div>
+
+    <div class="buttons">
+      <button class="action" onclick="encodeText()">رمزیش..</button>
+      <button class="action" onclick="decodeText()">فارسیش..</button>
+    </div>
+
+    <div class="result-wrapper">
+      <button class="copy-btn" onclick="copyToClipboard()">📋</button>
+      <div class="result" id="resultBox">🔽 نتیجه اینجا نمایش داده می‌شود</div>
+    </div>
   </div>
 
   <script>
-    const SUPABASE_URL = "https://hmocwgibvkwhdswypdkc.supabase.co";
-    const SUPABASE_KEY = "1.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhtb2N3Z2lidmt3aGRzd3lwZGtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NTYwOTcsImV4cCI6MjA2NzIzMjA5N30.coKuFHvrtHcKc0HHPQ82Rk_60Rn0ECQA2j5_9azfIfQ";
+    const dict = {
+      "ا": "∆", "ب": "|_", "پ": "|^|", "ت": "+", "ث": "><", "ج": "C:",
+      "چ": "C=", "ح": "{-}", "خ": "{!}", "د": "◁", "ذ": "◁•", "ر": "┐",
+      "ز": "┐•", "ژ": "⊃⊂", "س": "≡", "ش": "≡•", "ص": "|_|", "ض": "|_|•",
+      "ط": "|~|", "ظ": "|~|•", "ع": "@", "غ": "@•", "ف": "⌿", "ق": "q̶",
+      "ک": "<|", "گ": "<|•", "ل": "∟", "م": "W", "ن": "ᴧ", "و": "O",
+      "ه": "#", "ی": "|̅|", " ": " "
+    };
 
-    async function sendMessage() {
-      const name = document.getElementById('name').value.trim();
-      const message = document.getElementById('message').value.trim();
+    const reverseDict = {};
+    for (let key in dict) reverseDict[dict[key]] = key;
+    const encodedKeys = Object.keys(reverseDict).sort((a, b) => b.length - a.length);
 
-      if (!name || !message) {
-        alert("لطفا نام و پیام را وارد کنید.");
-        return;
-      }
-
-      const { data, error } = await fetch(`${SUPABASE_URL}/rest/v1/messages`, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_KEY,
-          "Authorization": `Bearer ${SUPABASE_KEY}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=representation"
-        },
-        body: JSON.stringify({ name: name, text: message })
-      }).then(res => res.json());
-
-      if (error) {
-        console.error(error);
-        alert("❌ ارسال پیام ناموفق بود.");
-      } else {
-        alert("✅ پیام شما ارسال شد.");
-        document.getElementById('name').value = '';
-        document.getElementById('message').value = '';
-      }
+    function encodeText() {
+      const input = document.getElementById("textInput").value;
+      let output = "";
+      for (let char of input) output += dict[char] || char;
+      document.getElementById("resultBox").innerText = output || "هیچی وارد نکردی!";
     }
 
-    async function loadMessages() {
-      const { data, error } = await fetch(`${SUPABASE_URL}/rest/v1/messages?select=*`, {
-        method: "GET",
-        headers: {
-          "apikey": SUPABASE_KEY,
-          "Authorization": `Bearer ${SUPABASE_KEY}`,
+    function decodeText() {
+      const input = document.getElementById("textInput").value;
+      let result = "", i = 0;
+      while (i < input.length) {
+        let matched = false;
+        for (let key of encodedKeys) {
+          if (input.substr(i, key.length) === key) {
+            result += reverseDict[key];
+            i += key.length;
+            matched = true;
+            break;
+          }
         }
-      }).then(res => res.json());
+        if (!matched) {
+          result += input[i];
+          i++;
+        }
+      }
+      document.getElementById("resultBox").innerText = result || "هیچی وارد نکردی!";
+    }
 
-      const messagesDiv = document.getElementById('messages');
-      messagesDiv.innerHTML = '';
+    function copyToClipboard() {
+      const text = document.getElementById("resultBox").innerText;
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      const btn = document.querySelector('.copy-btn:not(.small-btn)');
+      const original = btn.innerText;
+      btn.innerText = "✅ کپی شد";
+      setTimeout(() => { btn.innerText = original; }, 1500);
+    }
 
-      if (error) {
-        console.error(error);
-        messagesDiv.innerHTML = "<p>❌ خطا در بارگذاری پیام‌ها</p>";
-      } else {
-        data.forEach(msg => {
-          const div = document.createElement('div');
-          div.className = 'msg';
-          div.textContent = `${msg.name}: ${msg.text}`;
-          messagesDiv.appendChild(div);
-        });
+    function clearText() {
+      document.getElementById("textInput").value = "";
+    }
+
+    async function pasteText() {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById("textInput").value = text;
+      } catch (err) {
+        alert("دسترسی به کلیپ‌بورد ممکن نیست. لطفاً اجازه بدهید یا از مرورگر پشتیبانی‌شده استفاده کنید.");
       }
     }
   </script>
